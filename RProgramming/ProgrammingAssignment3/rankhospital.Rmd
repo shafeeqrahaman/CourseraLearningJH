@@ -1,0 +1,122 @@
+---
+title: "Programming Assignment 3 - Rank Hospital"
+author: "Shafeeq Ur Rahaman"
+date: "3/11/2018"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE)
+library(dplyr)
+library(magrittr)
+library(stringr)
+```
+#Ranking hospitals by outcome in a state
+```{r warning=FALSE}
+rankhospital <- function(state, outcome, num="best") {
+    #Read the dataset
+    outcome_dataset <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+    #Read the subset of data required
+    outcome_subset <- subset(outcome_dataset, select = c(2,7,11,17,23))
+    #Assign column names to the dataset
+    colnames(outcome_subset) <- c("hospital name", "state", "heart attack", "heart failure", "pneumonia")
+    #Check for validity of the variables
+    if(!str_to_upper(state) %in% outcome_subset$state)
+        {
+            stop("Invalid State")
+        } 
+    else if(!(outcome %in% colnames(outcome_subset[,3:5])))
+        {
+            stop("Invalid Outcome")
+        }
+    else if(is.numeric(num)) 
+        {
+            outcome_row_indices <- which(outcome_subset[,"state"]==str_to_upper(state))
+            outcome_filtered <- outcome_subset[outcome_row_indices,]
+            
+            if(!(num <= length(outcome_filtered[,1])))
+                {
+                    result <- "NA"
+                }
+            else 
+                {
+                    #Convert the outcome column from character to numeric
+                    outcome_filtered[,outcome] <- as.numeric(outcome_filtered[,outcome])
+                    #Order the outcome column by hospital name
+                    outcome_filtered <- outcome_filtered[order(outcome_filtered[,"hospital name"]),]
+                    #Remove missing values from the outcome before ranking them
+                    outcome_filtered <- outcome_filtered[complete.cases(outcome_filtered[,outcome]),]
+                    #Create a rank variable and rank the dataset based on the outcome
+                    outcome_filtered <- outcome_filtered %>% mutate(rank = rank(outcome_filtered[,outcome], na.last = TRUE, ties.method="first"))
+                    result <- outcome_filtered[,"hospital name"][outcome_filtered$rank==num]
+                }
+        }
+    else if(!is.numeric(num))
+        {
+            if(num=="best")
+            {
+                outcome_row_indices <- which(outcome_subset[,"state"]==str_to_upper(state))
+                outcome_filtered <- outcome_subset[outcome_row_indices,]
+                outcome_filtered[,outcome] <- as.numeric(outcome_filtered[,outcome])
+                outcome_filtered <- outcome_filtered[order(outcome_filtered[,"hospital name"]),]
+                outcome_filtered <- outcome_filtered[complete.cases(outcome_filtered[,outcome]),]
+                outcome_filtered <- outcome_filtered %>% mutate(rank = rank(outcome_filtered[,outcome], na.last = TRUE, ties.method="first"))
+                result <- outcome_filtered[,"hospital name"][outcome_filtered$rank==min(outcome_filtered$rank)]
+            }
+            else if(num=="worst")
+            {
+                outcome_row_indices <- which(outcome_subset[,"state"]==str_to_upper(state))
+                outcome_filtered <- outcome_subset[outcome_row_indices,]
+                outcome_filtered[,outcome] <- as.numeric(outcome_filtered[,outcome])
+                outcome_filtered <- outcome_filtered[order(outcome_filtered[,"hospital name"]),]
+                outcome_filtered <- outcome_filtered[complete.cases(outcome_filtered[,outcome]),]
+                outcome_filtered <- outcome_filtered %>% mutate(rank = rank(outcome_filtered[,outcome], na.last = TRUE, ties.method="first"))
+                result <- outcome_filtered[,"hospital name"][outcome_filtered$rank==max(outcome_filtered$rank)]
+            }
+    }
+     else
+            {
+                stop("invalid rank")
+            }
+    return(result)
+    
+}
+```
+```{r warning=FALSE}
+rankhospital("NC", "heart attack", "worst")
+rankhospital("TX", "heart failure", 4)
+rankhospital("MD", "heart attack", "worst")
+rankhospital("MN", "heart attack", 5000)
+rankhospital("NC", "heart attack", "worst")
+rankhospital("WA", "heart attack", 7)
+rankhospital("TX", "pneumonia", 10)
+rankhospital("NY", "heart attack", 7)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

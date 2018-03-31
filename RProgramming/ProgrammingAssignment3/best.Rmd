@@ -1,0 +1,110 @@
+---
+title: "ProgrammingAssignment3 Coursera - Best Hospital"
+author: "Shafeeq Ur Rahaman"
+date: "3/10/2018"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(magrittr)
+library(stringr)
+```
+#Programming Assignment 3
+###Plot the 30-day mortality rates for heart attack 
+```{r }
+#Load the csv file into R
+outcome <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+head(outcome)
+nrow(outcome)
+ncol(outcome)
+names(outcome)
+```
+
+```{r echo=FALSE}
+outcome[,11] <- as.numeric(outcome[,11])
+hist(outcome[,11])
+```
+
+###Finding the best hospital in a state
+```{r warning=FALSE}
+best <- function(state,outcome)
+{
+    #Read the data from csv file
+    outcome_dataset <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+    #Read the subset of data required
+    outcome_subset <- subset(outcome_dataset, select = c(2,7,11,17,23))
+    #Assign simple column names
+    colnames(outcome_subset) <- c("hospital name", "state", "heart attack", "heart failure", 
+                                  "pneumonia")
+    #Check for state and outcome validity
+    if(!str_to_upper(state) %in% outcome_subset$state) 
+    {
+        stop("Invalid State")
+    }
+    else  if(!(outcome %in% colnames(outcome_subset[,3:5])))
+    {
+        stop("Invalid Outcome")
+    }
+    else {
+       #Get row indices of dataset matching the state
+       outcome_rows <- which(outcome_subset[,"state"]==str_to_upper(state))
+       #Get matching row indices dataset 
+       outcome_filtered_dataset <- outcome_subset[outcome_rows,]
+       #Converting the outcome variable to numeric as loaded as factor by default
+       outcome_numeric <- as.numeric(outcome_filtered_dataset[,outcome])
+       #Calculate the minimum value of the variable
+       outcome_min <- min(outcome_numeric, na.rm = TRUE)
+       #Using row indice number to filter
+       final_result  <- outcome_filtered_dataset[, "hospital name"][which(outcome_numeric == outcome_min)]
+      best_hospital <- final_result[order(final_result)]
+    }
+    best_hospital
+}
+```
+```{r warning=FALSE}
+best("TX", "heart attack")
+best("TX", "heart failure")
+best("MD", "heart attack")
+best("MD", "pneumonia")
+best("SC", "heart attack")
+best("NY", "pneumonia")
+best("AK", "pneumonia")
+#Below calls are to check for invalid results
+#best("MD", "dog bite")
+#best("BB", "heart attack")
+#best("NY", "hert attack")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
