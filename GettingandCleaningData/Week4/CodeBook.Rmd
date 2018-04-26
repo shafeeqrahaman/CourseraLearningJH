@@ -5,10 +5,6 @@ date: "4/25/2018"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ### Following datasets were considered among all the available files in the present data analysis
 
 ### Original Datasets
